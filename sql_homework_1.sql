@@ -1,32 +1,37 @@
 use sakila;
 
-#1a:
+#1a: You need a list of all the actors who have Display the first and last names of all actors from the table actor.
 select first_name, last_name from actor;
 
-#1b
+#1b Display the first and last name of each actor in a single column in upper case letters. Name the column Actor Name.
 select concat(first_name, ' ',last_name) as `Actor Name` from actor;
 
-#2a
+/*2a You need to find the ID number, first name, and last name of an actor, 
+of whom you know only the first name, "Joe." What is one query would you 
+use to obtain this information?*/
 select actor_id, first_name, last_name from actor where first_name = 'Joe';
 
-#2b
+#2b Find all actors whose last name contain the letters GEN:
 select * from actor where last_name like '%GEN%';
 
-#2c
+/*2c Find all actors whose last names contain the letters LI. This time, 
+order the rows by last name and first name, in that order:*/
 select * from actor where last_name like '%LI%' order by last_name, first_name;
 
-#2d
+#2d Using IN, display the country_id and country columns of the following countries: Afghanistan, Bangladesh, and China:
 select country_id, country from country where country in ('Afghanistan', 'Bangladesh', 'China');
 
-#3a
+/*3a Add a middle_name column to the table actor. Position it between 
+first_name and last_name. Hint: you will need to specify the data type.*/
 alter table actor
 add middle_name varchar(3) after first_name;
 
-#3b
+/*3b You realize that some of these actors have tremendously long last names. 
+Change the data type of the middle_name column to blobs.*/
 alter table actor
 modify column middle_name blob;
 
-#3c
+#3c Now delete the middle_name column.
 alter table actor
 drop column middle_name;
 
@@ -162,18 +167,57 @@ where film_id in
 	)
 ;
 
+#7e. Display the most frequently rented movies in descending order.
+select f.title movie, count(*) rent_count
+from film f, inventory i, rental r
+where f.film_id = i.film_id and i.inventory_id = r.inventory_id
+group by movie
+order by rent_count desc;
 
+#7f. Write a query to display how much business, in dollars, each store brought in.
+select s.store_id, sum(p.amount)
+from store s, payment p, inventory i, rental r
+where s.store_id = i.store_id and i.inventory_id = r.inventory_id 
+	and r.rental_id = p.rental_id
+group by s.store_id;
 
+#7g. Write a query to display for each store its store ID, city, and country.
+select s.store_id, c.city, country.country
+from store s, city c, country, address a
+where s.address_id = a.address_id and a.city_id = c.city_id
+	and c.country_id = country.country_id;
 
+/*7h. List the top five genres in gross revenue in descending order. (Hint: you may need 
+to use the following tables: category, film_category, inventory, payment, and rental.)*/
+select c.name category, sum(p.amount) total 
+from category c, payment p, film_category fc, inventory i, rental r
+where c.category_id = fc.category_id 
+	and	fc.film_id = i.film_id
+    and i.inventory_id = r.inventory_id
+    and r.rental_id = p.rental_id
+group by c.name
+order by total desc
+limit 5;
 
+/*8a. In your new role as an executive, you would like to have an easy way of viewing 
+the Top five genres by gross revenue. Use the solution from the problem above to create 
+a view. If you haven't solved 7h, you can substitute another query to create a view.*/
+create view `Top 5 categories by gross revenue` as
+select c.name category, sum(p.amount) total 
+from category c, payment p, film_category fc, inventory i, rental r
+where c.category_id = fc.category_id 
+	and	fc.film_id = i.film_id
+    and i.inventory_id = r.inventory_id
+    and r.rental_id = p.rental_id
+group by c.name
+order by total desc
+limit 5;
 
+#8b. How would you display the view that you created in 8a?
+select * from `Top 5 categories by gross revenue`;
 
-
-
-
-
-
-
+#8c. You find that you no longer need the view top_five_genres. Write a query to delete it.*/
+drop view `Top 5 categories by gross revenue`;
 
 
 
